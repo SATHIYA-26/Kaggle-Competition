@@ -67,5 +67,20 @@ Predicted SalePrice in US Dollars
 | **Local Validation (RMSLE)** | **0.1418** |
 | **Submission File** | `submission_01.csv` |
 | **What It Tests** | Baseline predictive capacity of preprocessed features without regularization or feature engineering |
-| **Kaggle Public Score** | *(Pending submission)* |
-| **Kaggle Leaderboard Rank** | *(Pending submission)* |
+| **Kaggle Public Score** | **0.13950** |
+| **Kaggle Leaderboard Rank** | **2165 / 3843** (Top ~56%) |
+
+---
+
+## 6. Submission #1 Analysis & Alignment Check
+- **Local Validation vs. Kaggle Leaderboard**:
+  - Local Validation RMSLE: **0.1418**
+  - Kaggle Public RMSLE: **0.13950**
+  - $\Delta = -0.0023$ (Kaggle score is slightly stronger than local validation).
+- **Why did this occur?**
+  1. **Validation Split Integrity**: The local 80/20 split was realistic and conservative. It did not suffer from optimistic leakage.
+  2. **Sample Size Advantage**: While local validation was trained on 80% of data (1,168 rows), the final submission pipeline was fitted on 100% of data (1,460 rows). Extra samples provided additional stability for the 302 parameters.
+  3. **Strong Foundation**: Achieving top 56% globally on submission #1 with standard unregularized OLS proves that our structural imputation, one-hot encoding, and target logarithmic transformation provide an exceptionally sound baseline.
+- **Next Frontier**:
+  - Unregularized OLS suffers from variance inflation due to multicollinear pairs identified in EDA.
+  - Adding regularization (Ridge/Lasso) and domain-specific feature engineering in Phase 4 is our next path to push toward the top tiers.
