@@ -5,7 +5,7 @@ This document tracks all formal modeling experiments and Kaggle submissions acro
 | Submission | Phase | Main Change | Model | Local CV / Val | Kaggle Score | Kaggle Rank | Key Learnings & Observations |
 |:---:|:---:|:---|:---|:---:|:---:|:---:|:---|
 | **S1** | Phase 3 | First baseline end-to-end pipeline | Linear Regression (OLS) | 0.1418 (Val RMSLE) | 0.13950 | 2165 / 3843 | Clean preprocessing & log target yield solid 0.1418 local baseline; 0.13950 on Kaggle shows strong local/public alignment and top 56% baseline. |
-| **S2** | Phase 4 | Feature Engineering + Lasso Regularization | Lasso (alpha=0.001) | 0.1224 (Val RMSLE) | *(Pending)* | *(Pending)* | Added TotalSF, TotalBath, Ages; L1 penalty pruned 108 redundant dummy features, dropping RMSLE from 0.1418 to 0.1224 (-0.0194). |
+| **S2** | Phase 4 | Feature Engineering + Lasso Regularization | Lasso (alpha=0.001) | 0.1224 (Val RMSLE) | 0.14271 | *(Pending)* | Local Val improved to 0.1224 (-0.0194); Kaggle score 0.14271 slightly degraded due to extreme linear extrapolation on single 10,190 sq ft test mansion (Id 2550). |
 | **S3** | Phase 4 | Regularization (Ridge/Lasso) | — | — | — | — | — |
 | **S4** | Phase 4 | Tree ensemble (Random Forest) | — | — | — | — | — |
 | **S5** | Phase 5 | Boosting (XGBoost/LightGBM) | — | — | — | — | — |

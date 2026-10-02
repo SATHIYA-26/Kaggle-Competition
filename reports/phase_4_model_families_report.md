@@ -88,5 +88,20 @@ Rather than feeding raw individual room measurements, we engineered 7 domain-jus
 | **Local Validation (RMSLE)** | **`0.1224`** (Baseline was `0.1418`, improvement of **$-0.0194$**) |
 | **Submission File** | `submission_02.csv` |
 | **What It Tests** | How $\ell_1$ automatic feature pruning and domain square footage / bathroom aggregates boost generalization |
-| **Kaggle Public Score** | *(Pending submission)* |
-| **Kaggle Leaderboard Rank** | *(Pending submission)* |
+| **Kaggle Public Score** | **0.14271** |
+| **Kaggle Leaderboard Rank** | *(Pending user rank input)* |
+
+---
+
+## 6. Submission #2 Analysis: The Discrepancy Investigation
+- **Local Validation RMSLE**: `0.1224` (down from `0.1418`)
+- **Kaggle Public Score**: `0.14271` (up from `0.13950`)
+- **Investigation: Why did local validation improve while Kaggle slightly degraded?**
+  1. **Outlier Linear Extrapolation on Id 2550**:
+     - House `Id 2550` has `GrLivArea = 5095` and `TotalBsmtSF = 5095`, resulting in `TotalSF = 10,190 sq ft`.
+     - In S1 (OLS baseline), `Id 2550` was predicted at **\$760,778**.
+     - In S2 (Lasso + `TotalSF`), the unconstrained linear slope extrapolated `Id 2550` to **\$1,468,264**.
+     - Since the maximum historical sale price in Ames is \$755,000, predicting \$1.47M introduces a squared log error of $\approx 0.80$ on this single test house alone, which accounts for nearly the entire $+0.003$ gap on test RMSLE!
+  2. **Single-Split Validation Blind Spot**:
+     - Our 80/20 split did not have a 10,000 sq ft house in the validation split, so local validation could not detect this linear extrapolation risk.
+     - **Takeaway**: This proves why **5-Fold Cross-Validation (Phase 5)** and non-linear / tree-based handling are necessary to evaluate generalized performance reliably.
