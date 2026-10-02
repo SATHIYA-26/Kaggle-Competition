@@ -745,7 +745,15 @@ high_corr_df
 
 
 ==========================================================================================
-CELL #18 | TYPE: CODE [Execution Count: 19]
+CELL #18 | TYPE: MARKDOWN
+==========================================================================================
+--- [MARKDOWN / EXPLANATION / QUESTION] ---
+<Empty>
+
+
+
+==========================================================================================
+CELL #19 | TYPE: CODE [Execution Count: 19]
 ==========================================================================================
 --- [CODE / INPUT] ---
 from scipy.stats import chi2_contingency
@@ -758,7 +766,7 @@ import pandas as pd
 
 
 ==========================================================================================
-CELL #19 | TYPE: CODE [Execution Count: 20]
+CELL #20 | TYPE: CODE [Execution Count: 20]
 ==========================================================================================
 --- [CODE / INPUT] ---
 def cramers_v(x, y):
@@ -791,7 +799,7 @@ def cramers_v(x, y):
 
 
 ==========================================================================================
-CELL #20 | TYPE: CODE [Execution Count: 21]
+CELL #21 | TYPE: CODE [Execution Count: 21]
 ==========================================================================================
 --- [CODE / INPUT] ---
 categorical_cols = train.select_dtypes(
@@ -852,7 +860,7 @@ See https://pandas.pydata.org/docs/user_guide/migration-3-strings.html#string-mi
 
 
 ==========================================================================================
-CELL #21 | TYPE: CODE [Execution Count: 22]
+CELL #22 | TYPE: CODE [Execution Count: 22]
 ==========================================================================================
 --- [CODE / INPUT] ---
 plt.figure(figsize=(14, 6))
@@ -876,12 +884,447 @@ plt.show()
 
 
 ==========================================================================================
-CELL #22 | TYPE: CODE
+CELL #23 | TYPE: CODE
 ==========================================================================================
 --- [CODE / INPUT] ---
 <Empty>
 
 --- [OUTPUT / RESULTS] ---
 <No output or Cell was not executed>
+
+
+
+==========================================================================================
+CELL #24 | TYPE: MARKDOWN
+==========================================================================================
+--- [MARKDOWN / EXPLANATION / QUESTION] ---
+Preprocessing phase : 
+
+
+
+
+==========================================================================================
+CELL #25 | TYPE: CODE [Execution Count: 23]
+==========================================================================================
+--- [CODE / INPUT] ---
+X = train.drop(columns=["SalePrice", "Id"]).copy()
+y = train["SalePrice"].copy()
+
+test_X = test.drop(columns=["Id"]).copy()
+
+print("X shape:", X.shape)
+print("y shape:", y.shape)
+print("Test X shape:", test_X.shape)
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+X shape: (1460, 79)
+y shape: (1460,)
+Test X shape: (1459, 79)
+
+
+
+==========================================================================================
+CELL #26 | TYPE: CODE [Execution Count: 24]
+==========================================================================================
+--- [CODE / INPUT] ---
+numeric_cols = X.select_dtypes(include=np.number).columns.tolist()
+categorical_cols = X.select_dtypes(include="object").columns.tolist()
+
+print("Number of numerical features:", len(numeric_cols))
+print("Number of categorical features:", len(categorical_cols))
+
+print("\nNumerical columns:")
+print(numeric_cols)
+
+print("\nCategorical columns:")
+print(categorical_cols)
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Number of numerical features: 36
+Number of categorical features: 43
+
+Numerical columns:
+['MSSubClass', 'LotFrontage', 'LotArea', 'OverallQual', 'OverallCond', 'YearBuilt', 'YearRemodAdd', 'MasVnrArea', 'BsmtFinSF1', 'BsmtFinSF2', 'BsmtUnfSF', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'LowQualFinSF', 'GrLivArea', 'BsmtFullBath', 'BsmtHalfBath', 'FullBath', 'HalfBath', 'BedroomAbvGr', 'KitchenAbvGr', 'TotRmsAbvGrd', 'Fireplaces', 'GarageYrBlt', 'GarageCars', 'GarageArea', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch', '3SsnPorch', 'ScreenPorch', 'PoolArea', 'MiscVal', 'MoSold', 'YrSold']
+
+Categorical columns:
+['MSZoning', 'Street', 'Alley', 'LotShape', 'LandContour', 'Utilities', 'LotConfig', 'LandSlope', 'Neighborhood', 'Condition1', 'Condition2', 'BldgType', 'HouseStyle', 'RoofStyle', 'RoofMatl', 'Exterior1st', 'Exterior2nd', 'MasVnrType', 'ExterQual', 'ExterCond', 'Foundation', 'BsmtQual', 'BsmtCond', 'BsmtExposure', 'BsmtFinType1', 'BsmtFinType2', 'Heating', 'HeatingQC', 'CentralAir', 'Electrical', 'KitchenQual', 'Functional', 'FireplaceQu', 'GarageType', 'GarageFinish', 'GarageQual', 'GarageCond', 'PavedDrive', 'PoolQC', 'Fence', 'MiscFeature', 'SaleType', 'SaleCondition']
+>> Stream (stderr):
+C:\Users\sathi\AppData\Local\Temp\ipykernel_37380\989642598.py:2: Pandas4Warning: For backward compatibility, 'str' dtypes are included by select_dtypes when 'object' dtype is specified. This behavior is deprecated and will be removed in a future version. Explicitly pass 'str' to `include` to select them, or to `exclude` to remove them and silence this warning.
+See https://pandas.pydata.org/docs/user_guide/migration-3-strings.html#string-migration-select-dtypes for details on how to write code that works with pandas 2 and 3.
+  categorical_cols = X.select_dtypes(include="object").columns.tolist()
+
+
+
+==========================================================================================
+CELL #27 | TYPE: CODE
+==========================================================================================
+--- [CODE / INPUT] ---
+<Empty>
+
+--- [OUTPUT / RESULTS] ---
+<No output or Cell was not executed>
+
+
+
+==========================================================================================
+CELL #28 | TYPE: MARKDOWN
+==========================================================================================
+--- [MARKDOWN / EXPLANATION / QUESTION] ---
+Define categorical columns where missing means "absence"
+
+From our EDA, these missing values represent the absence of that house feature, so we should explicitly encode them as "None".
+
+
+
+
+==========================================================================================
+CELL #29 | TYPE: CODE [Execution Count: 25]
+==========================================================================================
+--- [CODE / INPUT] ---
+none_cols = [
+    "PoolQC",
+    "MiscFeature",
+    "Alley",
+    "Fence",
+    "MasVnrType",
+    "FireplaceQu",
+    "GarageType",
+    "GarageFinish",
+    "GarageQual",
+    "GarageCond",
+    "BsmtQual",
+    "BsmtCond",
+    "BsmtExposure",
+    "BsmtFinType1",
+    "BsmtFinType2"
+]
+
+--- [OUTPUT / RESULTS] ---
+<No output or Cell was not executed>
+
+
+
+==========================================================================================
+CELL #30 | TYPE: CODE [Execution Count: 26]
+==========================================================================================
+--- [CODE / INPUT] ---
+for col in none_cols:
+    X[col] = X[col].fillna("None")
+    test_X[col] = test_X[col].fillna("None")
+
+--- [OUTPUT / RESULTS] ---
+<No output or Cell was not executed>
+
+
+
+==========================================================================================
+CELL #31 | TYPE: CODE [Execution Count: 27]
+==========================================================================================
+--- [CODE / INPUT] ---
+remaining_train_missing = X.isnull().sum()
+remaining_train_missing = remaining_train_missing[
+    remaining_train_missing > 0
+].sort_values(ascending=False)
+
+print("Remaining missing values in train:")
+print(remaining_train_missing)
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Remaining missing values in train:
+LotFrontage    259
+GarageYrBlt     81
+MasVnrArea       8
+Electrical       1
+dtype: int64
+
+
+
+==========================================================================================
+CELL #32 | TYPE: CODE [Execution Count: 28]
+==========================================================================================
+--- [CODE / INPUT] ---
+remaining_test_missing = test_X.isnull().sum()
+remaining_test_missing = remaining_test_missing[
+    remaining_test_missing > 0
+].sort_values(ascending=False)
+
+print("\nRemaining missing values in test:")
+print(remaining_test_missing)
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+
+Remaining missing values in test:
+LotFrontage     227
+GarageYrBlt      78
+MasVnrArea       15
+MSZoning          4
+BsmtFullBath      2
+Utilities         2
+BsmtHalfBath      2
+Functional        2
+Exterior1st       1
+Exterior2nd       1
+TotalBsmtSF       1
+BsmtUnfSF         1
+BsmtFinSF2        1
+BsmtFinSF1        1
+KitchenQual       1
+GarageCars        1
+GarageArea        1
+SaleType          1
+dtype: int64
+
+
+
+==========================================================================================
+CELL #33 | TYPE: CODE [Execution Count: 30]
+==========================================================================================
+--- [CODE / INPUT] ---
+
+numeric_transformer = Pipeline(
+    steps=[
+        ("imputer", SimpleImputer(strategy="median"))
+    ]
+)
+
+--- [OUTPUT / RESULTS] ---
+<No output or Cell was not executed>
+
+
+
+==========================================================================================
+CELL #34 | TYPE: CODE [Execution Count: 31]
+==========================================================================================
+--- [CODE / INPUT] ---
+categorical_transformer = Pipeline(
+    steps=[
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        (
+            "onehot",
+            OneHotEncoder(
+                handle_unknown="ignore"
+            )
+        )
+    ]
+)
+
+--- [OUTPUT / RESULTS] ---
+<No output or Cell was not executed>
+
+
+
+==========================================================================================
+CELL #35 | TYPE: CODE [Execution Count: 32]
+==========================================================================================
+--- [CODE / INPUT] ---
+preprocessor = ColumnTransformer(
+    transformers=[
+        (
+            "num",
+            numeric_transformer,
+            numeric_cols
+        ),
+        (
+            "cat",
+            categorical_transformer,
+            categorical_cols
+        )
+    ]
+)
+
+--- [OUTPUT / RESULTS] ---
+<No output or Cell was not executed>
+
+
+
+==========================================================================================
+CELL #36 | TYPE: CODE [Execution Count: 33]
+==========================================================================================
+--- [CODE / INPUT] ---
+X_processed = preprocessor.fit_transform(X)
+
+print("Processed shape:", X_processed.shape)
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Processed shape: (1460, 302)
+
+
+
+==========================================================================================
+CELL #37 | TYPE: CODE [Execution Count: 34]
+==========================================================================================
+--- [CODE / INPUT] ---
+print("Any missing values after preprocessing:",
+      np.isnan(X_processed.toarray()).any()
+      if hasattr(X_processed, "toarray")
+      else np.isnan(X_processed).any())
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Any missing values after preprocessing: False
+
+
+
+==========================================================================================
+CELL #38 | TYPE: CODE [Execution Count: 35]
+==========================================================================================
+--- [CODE / INPUT] ---
+test_X_processed = preprocessor.transform(test_X)
+
+print("test_X_processed shape:", test_X_processed.shape)
+print("Any missing values in test_X_processed:",
+      np.isnan(test_X_processed.toarray()).any()
+      if hasattr(test_X_processed, "toarray")
+      else np.isnan(test_X_processed).any())
+
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+test_X_processed shape: (1459, 302)
+Any missing values in test_X_processed: False
+
+
+
+==========================================================================================
+CELL #39 | TYPE: CODE [Execution Count: 36]
+==========================================================================================
+--- [CODE / INPUT] ---
+# Target transformation: log1p
+y_log = np.log1p(y)
+
+print(f"Original SalePrice skewness: {y.skew():.4f}")
+print(f"Transformed y_log skewness: {y_log.skew():.4f}")
+print("y_log shape:", y_log.shape)
+
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Original SalePrice skewness: 1.8829
+Transformed y_log skewness: 0.1213
+y_log shape: (1460,)
+
+
+
+==========================================================================================
+CELL #40 | TYPE: MARKDOWN
+==========================================================================================
+--- [MARKDOWN / EXPLANATION / QUESTION] ---
+## Phase 3: First Modeling Milestone — Linear Regression Baseline
+
+We establish our first end-to-end benchmark using an 80/20 train/validation split and Ordinary Least Squares Linear Regression.
+
+
+
+
+==========================================================================================
+CELL #41 | TYPE: CODE [Execution Count: 37]
+==========================================================================================
+--- [CODE / INPUT] ---
+# Step 1: Train/Validation Split (80% train, 20% validation)
+X_train, X_val, y_train_log, y_val_log = train_test_split(
+    X, y_log, test_size=0.2, random_state=42
+)
+
+print("X_train shape:", X_train.shape)
+print("X_val shape:", X_val.shape)
+
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+X_train shape: (1168, 79)
+X_val shape: (292, 79)
+
+
+
+==========================================================================================
+CELL #42 | TYPE: CODE [Execution Count: 38]
+==========================================================================================
+--- [CODE / INPUT] ---
+# Step 2: Fit Preprocessor and Baseline Model on Training Split
+X_train_proc = preprocessor.fit_transform(X_train)
+X_val_proc = preprocessor.transform(X_val)
+
+baseline_model = LinearRegression()
+baseline_model.fit(X_train_proc, y_train_log)
+
+train_preds = baseline_model.predict(X_train_proc)
+val_preds = baseline_model.predict(X_val_proc)
+
+train_rmsle = root_mean_squared_error(y_train_log, train_preds)
+val_rmsle = root_mean_squared_error(y_val_log, val_preds)
+
+print(f"Train RMSLE: {train_rmsle:.4f}")
+print(f"Validation RMSLE: {val_rmsle:.4f}")
+
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Train RMSLE: 0.1101
+Validation RMSLE: 0.1418
+
+
+
+==========================================================================================
+CELL #43 | TYPE: CODE [Execution Count: 39]
+==========================================================================================
+--- [CODE / INPUT] ---
+# Step 3: Full Training Pipeline and Test Inference
+full_pipeline = Pipeline(steps=[
+    ("preprocessor", preprocessor),
+    ("model", LinearRegression())
+])
+
+full_pipeline.fit(X, y_log)
+
+# Inference on test set in log space, followed by expm1 inverse transformation
+test_preds_log = full_pipeline.predict(test_X)
+test_preds = np.expm1(test_preds_log)
+
+print("Test predictions count:", len(test_preds))
+print("Min predicted price: $", round(test_preds.min(), 2))
+print("Max predicted price: $", round(test_preds.max(), 2))
+print("Mean predicted price: $", round(test_preds.mean(), 2))
+
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Test predictions count: 1459
+Min predicted price: $ 38200.5
+Max predicted price: $ 760778.89
+Mean predicted price: $ 178554.99
+
+
+
+==========================================================================================
+CELL #44 | TYPE: CODE [Execution Count: 40]
+==========================================================================================
+--- [CODE / INPUT] ---
+# Step 4: Generate Kaggle Submission File
+submission = pd.DataFrame({
+    "Id": test["Id"],
+    "SalePrice": test_preds
+})
+
+submission.to_csv("submission_01.csv", index=False)
+print("Saved submission_01.csv successfully!")
+print("Submission shape:", submission.shape)
+print(submission.head())
+
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Saved submission_01.csv successfully!
+Submission shape: (1459, 2)
+     Id      SalePrice
+0  1461  116498.181603
+1  1462  147457.098720
+2  1463  175113.037910
+3  1464  197825.808051
+4  1465  192271.691763
 
 
