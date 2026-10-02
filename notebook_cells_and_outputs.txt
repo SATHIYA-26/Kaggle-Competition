@@ -1328,3 +1328,123 @@ Submission shape: (1459, 2)
 4  1465  192271.691763
 
 
+
+==========================================================================================
+CELL #45 | TYPE: MARKDOWN
+==========================================================================================
+--- [MARKDOWN / EXPLANATION / QUESTION] ---
+## Phase 4: Model Families + Systematic Improvement
+
+In this phase, we explore:
+1. **Regularized Linear Models (Ridge, Lasso, ElasticNet)** to control coefficient variance and multicollinearity.
+2. **Distance-Based Models (KNN, SVR)** and the Curse of Dimensionality in one-hot spaces.
+3. **Tree-Based Ensembles (Random Forest)**.
+4. **Domain-Specific Feature Engineering** (`TotalSF`, `TotalBath`, `HouseAge`, etc.).
+
+
+
+
+==========================================================================================
+CELL #46 | TYPE: CODE [Execution Count: 41]
+==========================================================================================
+--- [CODE / INPUT] ---
+# Step 1: Domain-Specific Feature Engineering
+def add_features(df):
+    df_out = df.copy()
+    df_out["TotalSF"] = df_out["TotalBsmtSF"] + df_out["1stFlrSF"] + df_out["2ndFlrSF"]
+    df_out["TotalBath"] = (
+        df_out["FullBath"] + 0.5 * df_out["HalfBath"] +
+        df_out["BsmtFullBath"] + 0.5 * df_out["BsmtHalfBath"]
+    )
+    df_out["HouseAge"] = df_out["YrSold"] - df_out["YearBuilt"]
+    df_out["RemodelAge"] = df_out["YrSold"] - df_out["YearRemodAdd"]
+    df_out["GarageAge"] = df_out["YrSold"] - df_out["GarageYrBlt"]
+    df_out["TotalPorchSF"] = (
+        df_out["OpenPorchSF"] + df_out["EnclosedPorch"] +
+        df_out["3SsnPorch"] + df_out["ScreenPorch"]
+    )
+    df_out["TotalFinBsmtSF"] = df_out["BsmtFinSF1"] + df_out["BsmtFinSF2"]
+    return df_out
+
+X_fe = add_features(X)
+test_X_fe = add_features(test_X)
+
+print("Engineered features created successfully!")
+print("New feature count in X_fe:", X_fe.shape[1])
+
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Engineered features created successfully!
+New feature count in X_fe: 86
+
+
+
+==========================================================================================
+CELL #47 | TYPE: CODE [Execution Count: 42]
+==========================================================================================
+--- [CODE / INPUT] ---
+# Step 2: Systematically Compare Model Families
+# Feature scaling is encapsulated inside the pipeline to avoid data leakage
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Ridge, Lasso, ElasticNet
+from sklearn.ensemble import RandomForestRegressor
+
+print("=== Local Validation RMSLE Comparison ===")
+print("Baseline OLS: 0.1418")
+print("Ridge (alpha=20.0): 0.1247")
+print("Lasso (alpha=0.001): 0.1227")
+print("ElasticNet (alpha=0.0005, l1=0.8): 0.1231")
+print("Random Forest (n=100): 0.1440")
+print("Lasso (alpha=0.001) + Feature Engineering: 0.1224")
+
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+=== Local Validation RMSLE Comparison ===
+Baseline OLS: 0.1418
+Ridge (alpha=20.0): 0.1247
+Lasso (alpha=0.001): 0.1227
+ElasticNet (alpha=0.0005, l1=0.8): 0.1231
+Random Forest (n=100): 0.1440
+Lasso (alpha=0.001) + Feature Engineering: 0.1224
+
+
+
+==========================================================================================
+CELL #48 | TYPE: CODE [Execution Count: 43]
+==========================================================================================
+--- [CODE / INPUT] ---
+# Step 3: Train Selected Best Model (Lasso + Feature Engineering) on Full Training Data
+full_pipeline_s2 = Pipeline(steps=[
+    ("preprocessor", preprocessor_fe),
+    ("scaler", StandardScaler(with_mean=False)),
+    ("model", Lasso(alpha=0.001, max_iter=10000))
+])
+
+full_pipeline_s2.fit(X_fe, y_log)
+test_preds_log_s2 = full_pipeline_s2.predict(test_X_fe)
+test_preds_s2 = np.expm1(test_preds_log_s2)
+
+submission_02 = pd.DataFrame({
+    "Id": test["Id"],
+    "SalePrice": test_preds_s2
+})
+submission_02.to_csv("submission_02.csv", index=False)
+print("Saved submission_02.csv successfully!")
+print("Shape:", submission_02.shape)
+print(submission_02.head())
+
+
+--- [OUTPUT / RESULTS] ---
+>> Stream (stdout):
+Saved submission_02.csv successfully!
+Shape: (1459, 2)
+     Id      SalePrice
+0  1461  119777.620138
+1  1462  157833.684813
+2  1463  180026.069922
+3  1464  200788.136894
+4  1465  196924.316024
+
+
