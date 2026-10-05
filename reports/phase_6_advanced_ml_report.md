@@ -84,5 +84,20 @@ Using 5-Fold Cross-Validation, models were trained on 4 folds and used to predic
 | **Local 5-Fold OOF Score** | **`0.1265`** (OOF RMSLE across all 1,460 samples) |
 | **Submission File** | `submission_04.csv` |
 | **What It Tests** | Error cancellation between complementary linear and tree-based model families |
-| **Kaggle Public Score** | *(Pending submission)* |
-| **Kaggle Leaderboard Rank** | *(Pending submission)* |
+| **Kaggle Public Score** | **0.12418** |
+| **Kaggle Leaderboard Rank** | **844 / 3843** (Top ~21.9%, jumped **+436 positions** from 1280!) |
+
+---
+
+## 6. Submission #4 Analysis: Multi-Family Ensemble Synergy
+- **Leaderboard Trajectory Across Submissions**:
+  - **S1 (OLS Baseline)**: `0.13950` (Rank 2165)
+  - **S2 (Lasso Linear Extrapolation)**: `0.14271` (Degraded by Id 2550)
+  - **S3 (Tuned XGBoost Alone)**: `0.12788` (Rank 1280)
+  - **S4 (Diverse 4-Model Ensemble)**: **`0.12418`** (**Rank 844**, Top ~21.9%)
+- **Why Did the Ensemble Beat Single-Model XGBoost?**
+  1. **True Error Independence**: With an error correlation of only $0.8445$ between trees and linear models, averaging their predictions reduced overall residual variance.
+  2. **Grounded Boundary Behavior**: The ensemble anchored extreme predictions without aggressive clamping, landing `Id 2550` at a realistic \$408,016.66.
+  3. **High Signal Retention**: By rejecting PCA, the ensemble preserved the subtle, high-leverage signals of rare luxury categories that PCA discarded.
+- **Milestone Conclusion**:
+  - We have successfully advanced from the bottom half of the competition into the **Top 22% globally (Rank 844)** through deliberate, evidence-based experimentation.
